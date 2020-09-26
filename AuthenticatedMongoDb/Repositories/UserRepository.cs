@@ -18,7 +18,7 @@ namespace AuthenticatedMongoDb.Repositories
         {
             var filter = Builders<User>.Filter.Eq("Username", Username);
             
-            return Collection.Find(filter).First();
+            return Collection.Find(filter).FirstOrDefault();
         }
 
         public void UpdateFirstName(Guid Id, string FirstName)

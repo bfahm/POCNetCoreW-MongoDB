@@ -4,6 +4,8 @@ using AuthenticatedMongoDb.Services;
 using AuthenticatedMongoDb.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
 
 namespace AuthenticatedMongoDb.Controllers
 {
@@ -55,17 +57,40 @@ namespace AuthenticatedMongoDb.Controllers
 
             _userRepository.InsertRecord(newUser);
 
-            return Ok(request);
+            return Ok(newUser);
         }
 
-        [HttpGet]
-        [Authorize(Roles = "ADMIN")]
-        public IActionResult GetSenstiveData()
+        [HttpPut]
+        [Authorize]
+        public IActionResult UpdateFirstName([FromQuery] string NewFirstName)
         {
-            return Ok(new { 
-                Message = "Access as Admin Granted",
-                Payload = _userRepository.GetAll()
-            });;
+            string currentlyLoggedInUserId = User.Claims.FirstOrDefault(x => x.Type == "id")?.Value;
+
+            var toBeUpdated = _userRepository.GetById(new Guid(currentlyLoggedInUserId));
+            if (toBeUpdated != null)
+            {
+                try
+                {
+                    _userRepository.UpdateFirstName(new Guid(currentlyLoggedInUserId), NewFirstName);
+                    
+                    return Ok(new
+                    {
+                        Payload = $"Account '{toBeUpdated.Username}' has been successfully updated, new firstname: {NewFirstName}.."
+                    });
+                }
+                catch
+                {
+                    return BadRequest(new
+                    {
+                        Payload = $"Modify Querystring and try again"
+                    });
+                }
+            }
+
+            return NotFound(new
+            {
+                Payload = "Specified user was not found."
+            });
         }
     }
 }

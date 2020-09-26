@@ -36,7 +36,7 @@ namespace AuthenticatedMongoDb.Repositories
         {
             var filter = Builders<T>.Filter.Eq("Id", Id);
 
-            return Collection.Find(filter).First();
+            return Collection.Find(filter).FirstOrDefault();
         }
 
         public void DeleteById(Guid Id)
